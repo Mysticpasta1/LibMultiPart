@@ -1,12 +1,12 @@
 plugins {
-    id 'fabric-loom' version '1.2-SNAPSHOT'
+    id 'fabric-loom' version '1.6-SNAPSHOT'
     id 'org.cadixdev.licenser' version '0.6.1'
 }
 
 apply plugin: 'maven-publish' // for uploading to a maven repo
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+sourceCompatibility = JavaVersion.VERSION_21
+targetCompatibility = JavaVersion.VERSION_21
 
 repositories {
     mavenLocal()
@@ -19,7 +19,7 @@ repositories {
 }
 
 archivesBaseName = "LibMultiPart"
-version = "0.11.1-pre.1"
+version = "0.12.0-pre.1"
 
 license {
     header = project.file('misc/LICENSE_HEADER.txt');
