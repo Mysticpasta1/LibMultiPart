@@ -28,7 +28,6 @@ import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.passive.IronGolemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -43,6 +42,7 @@ import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.ItemActionResult;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -748,9 +748,15 @@ public abstract class AbstractPart {
     }
 
     /** Called whenever this part is used via
-     * {@link Block#onUse(BlockState, World, BlockPos, PlayerEntity, Hand, BlockHitResult)}. */
-    public ActionResult onUse(PlayerEntity player, Hand hand, BlockHitResult hit) {
+     * {@link Block#onUse(BlockState, World, BlockPos, PlayerEntity, BlockHitResult)}. */
+    public ActionResult onUse(PlayerEntity player, BlockHitResult hit) {
         return ActionResult.PASS;
+    }
+
+    /** Called whenever this part is used via
+     * {@link Block#onUseWithItem(ItemStack, BlockState, World, BlockPos, PlayerEntity, Hand, BlockHitResult)} */
+    public ItemActionResult onUseWithItem(ItemStack stack, PlayerEntity player, Hand hand, BlockHitResult hit) {
+        return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     /** Called whenever {@link BlockEntity#applyRotation(BlockRotation)} or {@link BlockState#rotate(BlockRotation)} is

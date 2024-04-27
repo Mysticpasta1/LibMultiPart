@@ -45,6 +45,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
 import net.minecraft.util.Hand;
+import net.minecraft.util.ItemActionResult;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
@@ -60,6 +61,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
+import net.minecraft.world.WorldView;
 import net.minecraft.world.biome.Biome;
 
 import alexiil.mc.lib.multipart.api.AbstractPart;
@@ -246,15 +248,31 @@ public class MultipartBlock extends Block
     }
 
     @Override
-    public ActionResult onUse(
-        BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit
-    ) {
-        ActionResult handled = super.onUse(state, world, pos, player, hand, hit);
+    protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
+        ActionResult handled = ActionResult.PASS;
         TransientPartIdentifier target = getMultipartTarget(state, world, pos, hit.getPos());
         if (target != null) {
-            handled = target.part.onUse(player, hand, hit);
+            handled = target.part.onUse(player, hit);
+        }
+        if (handled == ActionResult.PASS) {
+            handled = super.onUse(state, world, pos, player, hit);
         }
         return handled;
+    }
+
+    @Override
+    protected ItemActionResult onUseWithItem(
+        ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit
+    ) {
+        ItemActionResult result = ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        TransientPartIdentifier target = getMultipartTarget(state, world, pos, hit.getPos());
+        if (target != null) {
+            result = target.part.onUseWithItem(stack, player, hand, hit);
+        }
+        if (result == ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION) {
+            result = super.onUseWithItem(stack, state, world, pos, player, hand, hit);
+        }
+        return result;
     }
 
     @Override
@@ -269,7 +287,7 @@ public class MultipartBlock extends Block
 
     @Override
     @Environment(EnvType.CLIENT)
-    public ItemStack getPickStack(BlockView view, BlockPos pos, BlockState state) {
+    public ItemStack getPickStack(WorldView view, BlockPos pos, BlockState state) {
         MinecraftClient mc = MinecraftClient.getInstance();
         HitResult hit = mc.crosshairTarget;
         if (view != null && view == mc.world && hit != null && hit.getType() == HitResult.Type.BLOCK) {
@@ -349,11 +367,15 @@ public class MultipartBlock extends Block
     // ###############
 
     @Override
-    public boolean canFillWithFluid(BlockView view, BlockPos pos, BlockState state, Fluid fluid) {
+    public boolean canFillWithFluid(@org.jetbrains.annotations.Nullable PlayerEntity player, BlockView world, BlockPos pos, BlockState state, Fluid fluid) {
+        return testFluid(world, pos, fluid);
+    }
+
+    private static boolean testFluid(BlockView world, BlockPos pos, Fluid fluid) {
         if (fluid != Fluids.WATER) {
             return false;
         }
-        BlockEntity be = view.getBlockEntity(pos);
+        BlockEntity be = world.getBlockEntity(pos);
         if (be instanceof MultipartBlockEntity) {
             return ((MultipartBlockEntity) be).container.properties.getValue(MultipartProperties.CAN_BE_WATERLOGGED);
         }
@@ -362,7 +384,7 @@ public class MultipartBlock extends Block
 
     @Override
     public boolean tryFillWithFluid(WorldAccess world, BlockPos pos, BlockState state, FluidState fluid) {
-        if (!canFillWithFluid(world, pos, state, fluid.getFluid())) {
+        if (!testFluid(world, pos, fluid.getFluid())) {
             return false;
         }
         return Waterloggable.super.tryFillWithFluid(world, pos, state, fluid);

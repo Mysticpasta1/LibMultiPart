@@ -14,6 +14,7 @@ import java.util.function.BiFunction;
 import javax.annotation.Nullable;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -195,8 +196,8 @@ public final class PartHolder implements MultipartHolder {
         part.writeCreationData(buffer, ctx);
     }
 
-    static <T> ObjectOpenCustomHashSet<T> identityHashSet() {
-        return new ObjectOpenCustomHashSet<>(Util.identityHashStrategy());
+    static <T> ReferenceOpenHashSet<T> identityHashSet() {
+        return new ReferenceOpenHashSet<>();
     }
 
     @Override

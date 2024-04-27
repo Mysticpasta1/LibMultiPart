@@ -61,7 +61,7 @@ public class ServerPlayerInteractionManagerMixin {
     Vec3d sentHitVec;
 
     private void log(String text) {
-        LibMultiPart.LOGGER.info("[player-interaction] '" + player.getEntityName() + "' " + text);
+        LibMultiPart.LOGGER.info("[player-interaction] '" + player.getGameProfile().getName() + "' " + text);
     }
 
     @Inject(method = "Lnet/minecraft/server/network/ServerPlayerInteractionManager;update()V", at = @At("RETURN"))
@@ -183,7 +183,7 @@ public class ServerPlayerInteractionManagerMixin {
     @Inject(
         method = "Lnet/minecraft/server/network/ServerPlayerInteractionManager;tryBreakBlock(Lnet/minecraft/util/math/BlockPos;)Z",
         at = @At(value = "INVOKE", target = "Lnet/minecraft/block/Block;onBreak(Lnet/minecraft/world/World;"
-            + "Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/entity/player/PlayerEntity;)V"),
+            + "Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/entity/player/PlayerEntity;)Lnet/minecraft/block/BlockState;"),
         cancellable = true)
     void destroyBlock(BlockPos pos, CallbackInfoReturnable<Boolean> ci) {
         if (LibMultiPart.DEBUG) {

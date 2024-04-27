@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import net.minecraft.loot.context.LootContextParameterSet;
 import net.minecraft.util.Util;
@@ -34,7 +35,7 @@ public final class TransientPartIdentifier {
         if (parts.size() <= 1) {
             extra = new IdAdditional(Collections.emptySet());
         } else {
-            Set<AbstractPart> additional = new ObjectOpenCustomHashSet<>(Util.identityHashStrategy());
+            Set<AbstractPart> additional = new ReferenceOpenHashSet<>();
             for (PartHolder h : parts) {
                 if (h.part != part) {
                     additional.add(h.part);

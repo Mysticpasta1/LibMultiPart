@@ -80,12 +80,12 @@ public final class MultipartOutlineRenderer implements WorldRenderEvents.BlockOu
             vertexConsumer.vertex(entry.getPositionMatrix(), (float) (startX + offsetX), (float) (startY + offsetY),
                             (float) (startZ + offsetZ))
                     .color(0f, 0f, 0f, 0.4f)
-                    .normal(entry.getNormalMatrix(), nx, ny, nz)
+                    .normal(entry, nx, ny, nz)
                     .next();
             vertexConsumer.vertex(entry.getPositionMatrix(), (float) (endX + offsetX), (float) (endY + offsetY),
                             (float) (endZ + offsetZ))
                     .color(0f, 0f, 0f, 0.4f)
-                    .normal(entry.getNormalMatrix(), nx, ny, nz)
+                    .normal(entry, nx, ny, nz)
                     .next();
         });
     }

@@ -160,7 +160,7 @@ public class ClientPlayerInteractionManagerMixin implements IClientPlayerInterac
     @Inject(method = "breakBlock(Lnet/minecraft/util/math/BlockPos;)Z",
         at = @At(value = "INVOKE",
             target = "Lnet/minecraft/block/Block;onBreak(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;"
-                + "Lnet/minecraft/block/BlockState;Lnet/minecraft/entity/player/PlayerEntity;)V"),
+                + "Lnet/minecraft/block/BlockState;Lnet/minecraft/entity/player/PlayerEntity;)Lnet/minecraft/block/BlockState;"),
         cancellable = true)
     void breakBlock(BlockPos pos, CallbackInfoReturnable<Boolean> ci) {
         World world = client.world;

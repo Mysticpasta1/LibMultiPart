@@ -83,6 +83,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 public class PartContainer implements MultipartContainer {
 
@@ -507,8 +508,8 @@ public class PartContainer implements MultipartContainer {
 
     /** @return Every {@link PartHolder} that will be removed if the given part holder was removed. */
     public static Set<PartHolder> getAllRemoved(PartHolder holder) {
-        Set<PartHolder> toRemove = new ObjectOpenCustomHashSet<>(Util.identityHashStrategy());
-        Set<PartHolder> openSet = new ObjectOpenCustomHashSet<>(Util.identityHashStrategy());
+        Set<PartHolder> toRemove = new ReferenceOpenHashSet<>();
+        Set<PartHolder> openSet = new ReferenceOpenHashSet<>();
         openSet.add(holder);
 
         int iterationCount = 0;
