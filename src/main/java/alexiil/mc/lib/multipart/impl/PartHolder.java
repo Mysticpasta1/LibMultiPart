@@ -13,7 +13,6 @@ import java.util.function.BiFunction;
 
 import javax.annotation.Nullable;
 
-import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 import net.minecraft.entity.player.PlayerEntity;
@@ -23,11 +22,11 @@ import net.minecraft.loot.context.LootContextParameters;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.registry.RegistryWrapper.WrapperLookup;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.DirectionTransformation;
 import net.minecraft.util.math.Vec3d;
@@ -71,7 +70,7 @@ public final class PartHolder implements MultipartHolder {
         this.part = creator.create(this);
     }
 
-    PartHolder(PartContainer container, NbtCompound tag) {
+    PartHolder(PartContainer container, NbtCompound tag, WrapperLookup lookup) {
         this.container = container;
         String id = tag.getString("id");
         PartDefinition def = PartDefinition.PARTS.get(Identifier.tryParse(id));
@@ -84,7 +83,7 @@ public final class PartHolder implements MultipartHolder {
                     + container.getMultipartPos()
             );
         } else {
-            part = def.readFromNbt(this, dataNbt);
+            part = def.readFromNbt(this, dataNbt, lookup);
             if (LibMultiPart.DEBUG) {
                 LibMultiPart.LOGGER.info("  PartHolder.fromTag( " + uniqueId + ", " + part.getClass() + " ) {");
             }
@@ -138,7 +137,7 @@ public final class PartHolder implements MultipartHolder {
         }
     }
 
-    NbtCompound toNbt() {
+    NbtCompound toNbt(WrapperLookup lookup) {
         NbtCompound nbt = new NbtCompound();
         nbt.putLong("uid", uniqueId);
         if (part instanceof MissingPartImpl missing) {
@@ -146,7 +145,7 @@ public final class PartHolder implements MultipartHolder {
             nbt.put("data", missing.originalNbt);
         } else {
             nbt.putString("id", part.definition.identifier.toString());
-            nbt.put("data", part.toTag());
+            nbt.put("data", part.toTag(lookup));
         }
         NbtList reql = new NbtList();
         if (requiredParts != null) {

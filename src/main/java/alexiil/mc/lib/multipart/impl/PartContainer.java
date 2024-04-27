@@ -28,10 +28,10 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.registry.RegistryWrapper.WrapperLookup;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
-import net.minecraft.util.Util;
 import net.minecraft.util.function.BooleanBiFunction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -82,7 +82,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 
 public class PartContainer implements MultipartContainer {
@@ -194,9 +193,9 @@ public class PartContainer implements MultipartContainer {
     /** Whether {@link #validate()} has been called.
      * <p>
      * This is used in determining whether parts should be initialized immediately upon loading from
-     * {@link #fromNbt(NbtCompound)} or if this container should wait until {@link #validate()} is called. If this value
+     * {@link #fromNbt(NbtCompound, WrapperLookup)} or if this container should wait until {@link #validate()} is called. If this value
      * is <codd>true</codd>, then that means this container has already been validated and any subsequent calls to
-     * {@link #fromNbt(NbtCompound)} are being invoked on an already valid container and that
+     * {@link #fromNbt(NbtCompound, WrapperLookup)} are being invoked on an already valid container and that
      * {@link AbstractPart#onAdded(MultipartEventBus)} should be invoked immediately. */
     boolean validated = false;
 
@@ -888,7 +887,7 @@ public class PartContainer implements MultipartContainer {
 
     // Internals
 
-    void fromNbt(NbtCompound tag) {
+    void fromNbt(NbtCompound tag, WrapperLookup lookup) {
         if (LibMultiPart.DEBUG) {
             log("fromNbt( " + tag + " ) {");
         }
@@ -904,7 +903,7 @@ public class PartContainer implements MultipartContainer {
         NbtList allPartsTag = tag.getList("parts", new NbtCompound().getType());
         for (int i = 0; i < allPartsTag.size(); i++) {
             NbtCompound partTag = allPartsTag.getCompound(i);
-            PartHolder holder = new PartHolder(this, partTag);
+            PartHolder holder = new PartHolder(this, partTag, lookup);
             parts.add(holder);
             if (!areIdsValid) {
                 continue;
@@ -978,12 +977,12 @@ public class PartContainer implements MultipartContainer {
         }
     }
 
-    NbtCompound toNbt() {
+    NbtCompound toNbt(WrapperLookup lookup) {
         NbtCompound tag = new NbtCompound();
         tag.putString("cachedTransformation", MultipartBlock.TRANSFORMATION.name(cachedTransformation));
         NbtList partsTag = new NbtList();
         for (PartHolder part : parts) {
-            partsTag.add(part.toNbt());
+            partsTag.add(part.toNbt(lookup));
         }
         tag.put("parts", partsTag);
         return tag;

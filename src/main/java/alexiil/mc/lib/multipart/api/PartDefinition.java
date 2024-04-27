@@ -12,6 +12,7 @@ import java.util.Map;
 
 import com.google.common.base.Preconditions;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryWrapper.WrapperLookup;
 import net.minecraft.util.Identifier;
 
 import alexiil.mc.lib.net.IMsgReadCtx;
@@ -45,7 +46,7 @@ public class PartDefinition {
     }
 
     /** Protected constructor for use by subclasses that override both
-     * {@link #readFromNbt(MultipartHolder, NbtCompound)} and
+     * {@link #readFromNbt(MultipartHolder, NbtCompound, WrapperLookup)} and
      * {@link #loadFromBuffer(MultipartHolder, NetByteBuf, IMsgReadCtx)}. */
     protected PartDefinition(Identifier identifier) {
         this.identifier = identifier;
@@ -64,11 +65,11 @@ public class PartDefinition {
         }
     }
 
-    public AbstractPart readFromNbt(MultipartHolder holder, NbtCompound nbt) {
+    public AbstractPart readFromNbt(MultipartHolder holder, NbtCompound nbt, WrapperLookup lookup) {
         if (reader == null) {
             throw new IllegalStateException(getClass() + " needs to override readFromNbt(...)!");
         }
-        return reader.readFromNbt(this, holder, nbt);
+        return reader.readFromNbt(this, holder, nbt, lookup);
     }
 
     public AbstractPart loadFromBuffer(MultipartHolder holder, NetByteBuf buffer, IMsgReadCtx ctx)
@@ -84,7 +85,7 @@ public class PartDefinition {
         /** Reads the pipe pluggable from NBT. Unlike {@link IPartNetLoader} (which is allowed to fail and throw an
          * exception if the wrong data is given) this should make a best effort to read the pluggable from nbt, or fall
          * back to sensible defaults. */
-        AbstractPart readFromNbt(PartDefinition definition, MultipartHolder holder, NbtCompound nbt);
+        AbstractPart readFromNbt(PartDefinition definition, MultipartHolder holder, NbtCompound nbt, WrapperLookup lookup);
     }
 
     @FunctionalInterface

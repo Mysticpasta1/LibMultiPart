@@ -79,14 +79,14 @@ public class MultipartBlockEntity extends BlockEntity
     public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
         super.readNbt(nbt, lookup);
         if (nbt.contains("container")) {
-            container.fromNbt(nbt.getCompound("container"));
+            container.fromNbt(nbt.getCompound("container"), lookup);
         }
     }
 
     @Override
     public void writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
         super.writeNbt(nbt, lookup);
-        nbt.put("container", container.toNbt());
+        nbt.put("container", container.toNbt(lookup));
     }
 
     @Override

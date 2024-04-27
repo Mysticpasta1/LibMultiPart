@@ -34,6 +34,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.loot.context.LootContext;
 import net.minecraft.loot.context.LootContextParameterSet;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.RegistryWrapper.WrapperLookup;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Text;
@@ -113,7 +114,7 @@ public abstract class AbstractPart {
         this.container = holder.getContainer();
     }
 
-    public NbtCompound toTag() {
+    public NbtCompound toTag(WrapperLookup lookup) {
         return new NbtCompound();
     }
 
