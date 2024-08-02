@@ -25,7 +25,7 @@ public final class MissingPartImpl extends MissingPart {
         = LmpReflection.getApiConstructor(MissingPartDefinition.class, Identifier.class);
 
     static final MissingPartDefinition DEF_NOT_AN_ID
-        = MISSING_PART_DEF_CTOR.apply(new Object[] { new Identifier("libmultipart", "unknown/not_an_id") });
+        = MISSING_PART_DEF_CTOR.apply(new Object[] { Identifier.of("libmultipart", "unknown/not_an_id") });
 
     final String originalId;
     final NbtCompound originalNbt;

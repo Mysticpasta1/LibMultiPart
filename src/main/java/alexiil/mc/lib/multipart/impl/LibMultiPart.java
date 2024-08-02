@@ -75,6 +75,6 @@ public class LibMultiPart implements ModInitializer {
     }
 
     public static Identifier id(String path) {
-        return new Identifier(NAMESPACE, path);
+        return Identifier.of(NAMESPACE, path);
     }
 }

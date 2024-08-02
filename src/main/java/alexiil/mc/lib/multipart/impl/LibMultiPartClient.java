@@ -7,22 +7,22 @@
  */
 package alexiil.mc.lib.multipart.impl;
 
-import java.util.function.Consumer;
+import java.util.Objects;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
-import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry;
-import net.fabricmc.fabric.api.client.model.ModelProviderContext;
-import net.fabricmc.fabric.api.client.model.ModelProviderException;
-import net.fabricmc.fabric.api.client.model.ModelVariantProvider;
-import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
+import net.fabricmc.fabric.api.client.model.loading.v1.BlockStateResolver;
+import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
+import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin.Context;
+import net.fabricmc.fabric.api.client.model.loading.v1.ModelResolver;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderTickCounter;
+import net.minecraft.client.render.block.entity.BlockEntityRendererFactories;
 import net.minecraft.client.render.model.UnbakedModel;
-import net.minecraft.client.util.ModelIdentifier;
-import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
 import alexiil.mc.lib.multipart.impl.client.model.MultipartModel;
@@ -31,40 +31,38 @@ import alexiil.mc.lib.multipart.impl.client.render.MultipartOutlineRenderer;
 
 public class LibMultiPartClient implements ClientModInitializer {
 
-    public static final ModelIdentifier MODEL_IDENTIFIER
-        = new ModelIdentifier(new Identifier(LibMultiPart.NAMESPACE, "container"), "");
+    public static final Identifier MODEL_IDENTIFIER
+        = Identifier.of(LibMultiPart.NAMESPACE, "container");
+
+    private static MultipartModel.Unbaked unbaked = null;
 
     @Override
     public void onInitializeClient() {
         LibMultiPart.isWorldClientPredicate = w -> w != null && w == MinecraftClient.getInstance().world;
-        LibMultiPart.partialTickGetter = MinecraftClient.getInstance()::getTickDelta;
-        ModelLoadingRegistry.INSTANCE.registerVariantProvider(res -> varProvider());
-        ModelLoadingRegistry.INSTANCE.registerModelProvider(LibMultiPartClient::requestModels);
+        RenderTickCounter renderTickCounter = MinecraftClient.getInstance().getRenderTickCounter();
+        LibMultiPart.partialTickGetter = () -> renderTickCounter.getTickDelta(false);
+        ModelLoadingPlugin.register(LibMultiPartClient::setupModelLoader);
         BlockRenderLayerMap.INSTANCE.putBlock(LibMultiPart.BLOCK, RenderLayer.getCutout());
-        BlockEntityRendererRegistry.register(LibMultiPart.BLOCK_ENTITY, MultipartBlockEntityRenderer::new);
+        BlockEntityRendererFactories.register(LibMultiPart.BLOCK_ENTITY, MultipartBlockEntityRenderer::new);
         WorldRenderEvents.BLOCK_OUTLINE.register(MultipartOutlineRenderer.INSTANCE);
     }
 
-    private static ModelVariantProvider varProvider() {
-        return new ModelVariantProvider() {
-
-            MultipartModel.Unbaked ubaked = null;
-
-            @Override
-            public UnbakedModel loadModelVariant(ModelIdentifier modelId, ModelProviderContext context)
-                throws ModelProviderException {
-
-                if (modelId.getNamespace().equals(MODEL_IDENTIFIER.getNamespace())) {
-                    if (modelId.getPath().equals(MODEL_IDENTIFIER.getPath())) {
-                        return ubaked == null ? (ubaked = new MultipartModel.Unbaked()) : ubaked;
-                    }
-                }
-                return null;
-            }
-        };
+    private static void setupModelLoader(Context pluginContext) {
+        pluginContext.addModels(MODEL_IDENTIFIER);
+        pluginContext.resolveModel().register(LibMultiPartClient::resolveModel);
+        pluginContext.registerBlockStateResolver(LibMultiPart.BLOCK, LibMultiPartClient::addBlockStateModels);
     }
 
-    private static void requestModels(ResourceManager res, Consumer<Identifier> out) {
-        out.accept(MODEL_IDENTIFIER);
+    private static UnbakedModel resolveModel(ModelResolver.Context context) {
+        var model = Objects.requireNonNullElseGet(unbaked, () -> unbaked = new MultipartModel.Unbaked());
+        return MODEL_IDENTIFIER.equals(context.id()) ? model : null;
+    }
+
+    private static void addBlockStateModels(BlockStateResolver.Context context) {
+        var model = Objects.requireNonNullElseGet(unbaked, () -> unbaked = new MultipartModel.Unbaked());
+
+        for (BlockState state : LibMultiPart.BLOCK.getStateManager().getStates()) {
+            context.setModel(state, model);
+        }
     }
 }

@@ -236,7 +236,7 @@ public final class MultipartModel
         }
 
         @Override
-        public BakedModel bake(Baker baker, Function<SpriteIdentifier, Sprite> textureGetter, ModelBakeSettings rotationContainer, Identifier modelId) {
+        public BakedModel bake(Baker baker, Function<SpriteIdentifier, Sprite> textureGetter, ModelBakeSettings rotationContainer) {
             if (model == null) {
                 model = new MultipartModel(textureGetter);
             }

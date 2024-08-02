@@ -47,9 +47,8 @@ public class LibMultiPartPlugin implements IWailaPlugin, IBlockComponentProvider
             return;
         }
 
-        HitResult hitResult = accessor.getHitResult();
-        String name =
-            part.getName(hitResult instanceof BlockHitResult blockHitResult ? blockHitResult : null).getString();
+        BlockHitResult hitResult = accessor.getBlockHitResult();
+        String name = part.getName(hitResult).getString();
 
         IWailaConfig.Formatter formatter = IWailaConfig.get().getFormatter();
         tooltip.setLine(WailaConstants.OBJECT_NAME_TAG, formatter.blockName(name));
@@ -79,8 +78,13 @@ public class LibMultiPartPlugin implements IWailaPlugin, IBlockComponentProvider
         if (container == null) {
             return null;
         }
+        
+        BlockHitResult hitResult = accessor.getBlockHitResult();
+        if (hitResult == null) {
+            return null;
+        }
 
-        Vec3d vec = accessor.getHitResult().getPos().subtract(Vec3d.of(pos));
+        Vec3d vec = hitResult.getPos().subtract(Vec3d.of(pos));
         return container.getFirstPart(part -> doesContain(part, vec));
     }
 

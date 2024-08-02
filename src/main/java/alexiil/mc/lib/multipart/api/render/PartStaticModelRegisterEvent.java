@@ -38,7 +38,7 @@ public interface PartStaticModelRegisterEvent {
         }
 
         default Sprite getBlockSprite(String id) {
-            return getSprite(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, new Identifier(id));
+            return getSprite(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, Identifier.of(id));
         }
 
         default Sprite getBlockSprite(Identifier id) {
