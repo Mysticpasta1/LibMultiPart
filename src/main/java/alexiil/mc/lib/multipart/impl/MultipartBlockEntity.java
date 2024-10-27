@@ -76,6 +76,11 @@ public class MultipartBlockEntity extends BlockEntity
     }
 
     @Override
+    public boolean supports(BlockState state) {
+        return true;
+    }
+
+    @Override
     public void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup lookup) {
         super.readNbt(nbt, lookup);
         if (nbt.contains("container")) {
