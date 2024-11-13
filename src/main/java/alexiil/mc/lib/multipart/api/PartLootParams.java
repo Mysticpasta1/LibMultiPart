@@ -7,9 +7,13 @@
  */
 package alexiil.mc.lib.multipart.api;
 
+import java.util.function.Consumer;
+
 import net.minecraft.loot.context.LootContextParameter;
 import net.minecraft.loot.context.LootContextParameters;
 import net.minecraft.loot.context.LootContextType;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.Pair;
 
 import alexiil.mc.lib.multipart.impl.LibMultiPart;
 import alexiil.mc.lib.multipart.mixin.impl.LootContextTypesAccessor;
@@ -30,8 +34,8 @@ public final class PartLootParams {
     static {
         BROKEN_PART = new LootContextParameter<>(LibMultiPart.id("broken_part"));
         ADDITIONAL_PARTS = new LootContextParameter<>(LibMultiPart.id("additional_parts"));
-        PART_TYPE = LootContextTypesAccessor.callRegister(
-            "libmultipart:part", builder -> builder//
+        PART_TYPE = register(
+            Identifier.of("libmultipart", "part"), builder -> builder//
                 // Block
                 .require(LootContextParameters.BLOCK_STATE)//
                 .require(LootContextParameters.ORIGIN)//
@@ -43,6 +47,18 @@ public final class PartLootParams {
                 .require(BROKEN_PART)//
                 .require(ADDITIONAL_PARTS)//
         );
+    }
+    
+    private static LootContextType register(Identifier identifier, Consumer<LootContextType.Builder> type) {
+        LootContextType.Builder builder = new LootContextType.Builder();
+        type.accept(builder);
+        LootContextType lootContextType = builder.build();
+        LootContextType replaced = LootContextTypesAccessor.getMAP().putIfAbsent(identifier, lootContextType);
+        if (replaced != null) {
+            throw new IllegalStateException("Loot table parameter set " + identifier + " is already registered");
+        } else {
+            return lootContextType;
+        }
     }
 
     /** An {@link AbstractPart} that was broken.
