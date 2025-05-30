@@ -141,8 +141,24 @@ public class ServerPlayerInteractionManagerMixin {
     @Redirect(at = @At(value = "INVOKE",
         target = "Lnet/minecraft/block/BlockState;calcBlockBreakingDelta(Lnet/minecraft/entity/player/PlayerEntity;"
             + "Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;)F"),
-        method = "*")
+        method = "continueMining")
     float calcBlockBreakingDelta(BlockState state, PlayerEntity pl, BlockView view, BlockPos pos) {
+        if (LibMultiPart.DEBUG) {
+            log("calcBlockBreakingDelta( " + pos + " " + state + " )");
+        }
+        if (state.getBlock() instanceof IBlockMultipart<?>) {
+            IBlockMultipart<?> block = (IBlockMultipart<?>) state.getBlock();
+            return calcBlockBreakingDelta0(block, state, pl, view, pos);
+        } else {
+            return state.calcBlockBreakingDelta(pl, view, pos);
+        }
+    }
+
+    @Redirect(at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/block/BlockState;calcBlockBreakingDelta(Lnet/minecraft/entity/player/PlayerEntity;"
+                    + "Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;)F"),
+            method = "processBlockBreakingAction")
+    float calcBlockBreakingDelta2(BlockState state, PlayerEntity pl, BlockView view, BlockPos pos) {
         if (LibMultiPart.DEBUG) {
             log("calcBlockBreakingDelta( " + pos + " " + state + " )");
         }
@@ -181,9 +197,8 @@ public class ServerPlayerInteractionManagerMixin {
     }
 
     @Inject(
-        method = "Lnet/minecraft/server/network/ServerPlayerInteractionManager;tryBreakBlock(Lnet/minecraft/util/math/BlockPos;)Z",
-        at = @At(value = "INVOKE", target = "Lnet/minecraft/block/Block;onBreak(Lnet/minecraft/world/World;"
-            + "Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/entity/player/PlayerEntity;)V"),
+        method = "tryBreakBlock(Lnet/minecraft/util/math/BlockPos;)Z",
+        at = @At(value = "INVOKE", target = "Lnet/minecraftforge/common/ForgeHooks;onBlockBreakEvent(Lnet/minecraft/world/World;Lnet/minecraft/world/GameMode;Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/util/math/BlockPos;)I"),
         cancellable = true)
     void destroyBlock(BlockPos pos, CallbackInfoReturnable<Boolean> ci) {
         if (LibMultiPart.DEBUG) {

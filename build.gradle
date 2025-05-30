@@ -1,16 +1,33 @@
 plugins {
-    id 'fabric-loom' version '1.2-SNAPSHOT'
-    id 'org.cadixdev.licenser' version '0.6.1'
+    id 'dev.architectury.loom' version '1.10-SNAPSHOT'
+    id 'maven-publish'
 }
 
-apply plugin: 'maven-publish' // for uploading to a maven repo
+group = project.maven_group
+version = project.mod_version
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+base {
+    archivesName = project.archives_name
+}
+
+loom {
+    forge {
+        mixinConfig 'libmultipart.mixins.json'
+    }
+}
 
 repositories {
-    mavenLocal()
-    maven { name="AlexIIL"; url="https://maven.alexiil.uk/" }
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+
+    repositories {
+        maven {
+            url "https://cursemaven.com"
+            content {
+                includeGroup "curse.maven"
+            }
+        }
+    }
 
     // Compat dependencies
     if (wthit_enabled.toBoolean()) {
@@ -18,29 +35,10 @@ repositories {
     }
 }
 
-archivesBaseName = "LibMultiPart"
-version = "0.11.1-pre.1"
-
-license {
-    header = project.file('misc/LICENSE_HEADER.txt');
-    newLine = false;
-}
-
 dependencies {
-    minecraft "com.mojang:minecraft:$minecraft_version"
-    mappings "net.fabricmc:yarn:$yarn_mappings:v2"
-    modCompileOnly "net.fabricmc:fabric-loader:$loader_version"
-    modLocalRuntime "net.fabricmc:fabric-loader:$loader_version"
-
-    // Fabric api
-    modCompileOnly "net.fabricmc.fabric-api:fabric-api:$fabric_version"
-    modLocalRuntime "net.fabricmc.fabric-api:fabric-api:$fabric_version"
-
-    modApi "alexiil.mc.lib:libblockattributes-core:$libblockattributes_version"
-    modApi "alexiil.mc.lib:libnetworkstack-base:$libnetworkstack_version"
-
-    include "alexiil.mc.lib:libblockattributes-core:$libblockattributes_version"
-    include "alexiil.mc.lib:libnetworkstack-base:$libnetworkstack_version"
+    minecraft "net.minecraft:minecraft:$project.minecraft_version"
+    mappings "net.fabricmc:yarn:$project.yarn_mappings:v2"
+    forge "net.minecraftforge:forge:$project.forge_version"
 
     // Compat dependencies
     if (wthit_enabled.toBoolean()) {
@@ -48,185 +46,45 @@ dependencies {
         modLocalRuntime "mcp.mobius.waila:wthit:fabric-$wthit_version"
     }
 
-    // Misc
-    implementation "com.google.code.findbugs:jsr305:3.0.1"
-    testImplementation "junit:junit:4.12"
-}
-
-sourceSets {
-    main {
-        java {
-            // This is unfinished - so we won't build it quite yet
-            exclude "**/PartTags.java"
-
-            // Compat code
-            if (!wthit_enabled.toBoolean()) {
-                exclude "**/alexiil/mc/lib/multipart/compat/waila/**"
-            }
-        }
-        resources {
-            // Compat code
-            if (!wthit_enabled.toBoolean()) {
-                exclude "**/waila_plugins.json"
-            }
-        }
-    }
+    compileOnly "com.google.code.findbugs:jsr305:3.0.1"
+    testImplementation "junit:junit:4.13.1"
 }
 
 processResources {
-    // exclude all xcf file from resulting builds
-    exclude "**/*.xcf"
-}
+    inputs.property 'version', project.version
 
-compileJava {
-    options.compilerArgs << "-Xmaxerrs" << "2000"
-    options.compilerArgs << "-Xmaxwarns" << "2"
-    options.compilerArgs << "-Xlint:all"
-    options.compilerArgs << "-Xdiags:verbose"
-}
-
-javadoc {
-    exclude "alexiil/mc/lib/multipart/mixin";
-    exclude "alexiil/mc/lib/multipart/impl";
-    destinationDir file(new File(System.getenv("JAVADOC_DIR") ?: "$projectDir/build/javadoc", "$version"));
-
-    if (!"false".equalsIgnoreCase(System.getenv("JAVADOC_LINKS"))) {
-        List<String> links = new ArrayList<>();
-        if (System.getProperty("java.version").startsWith("1.")) {
-            links.add("https://docs.oracle.com/javase/8/docs/api/");
-        } else {
-            links.add("https://docs.oracle.com/en/java/javase/11/docs/api/");
-        }
-
-        if ("true".equalsIgnoreCase(System.getenv("JAVADOC_LINKS_FULL"))) {
-            links.add("https://alexiil.uk/javadoc/libblockattributes/$libblockattributes_version/".toString());
-            links.add("https://alexiil.uk/javadoc/libnetworkstack/$libnetworkstack_version/".toString());
-            links.add("https://maven.fabricmc.net/docs/fabric-api-$fabric_version/".toString());
-            links.add("https://maven.fabricmc.net/docs/yarn-$yarn_mappings/".toString());
-        }
-
-        options.links(links.toArray(new String[0]));
-    }
-    options.optionFiles << file('javadoc.options');
-}
-
-build.dependsOn(javadoc);
-
-// ensure that the encoding is set to UTF-8, no matter what the system default is
-// this fixes some edge cases with special characters not displaying correctly
-// see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
-tasks.withType(JavaCompile) {
-    options.encoding = "UTF-8"
-}
-
-java.withSourcesJar()
-
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-
-if (System.getenv("UPLOAD_MAVEN_URL") != null) {
-    task packageJavadoc(type: Zip, dependsOn: javadoc) {
-        from javadoc.destinationDir
-        archiveFileName = "libmultipart-javadoc-" + version + ".zip"
-    }
-
-    task uploadJavadoc(dependsOn: packageJavadoc) {
-        doLast {
-            HttpClient cl = HttpClient.newBuilder().authenticator(new Authenticator() {
-                @Override
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(System.getenv("UPLOAD_USERNAME"), System.getenv("UPLOAD_PASSWORD").toCharArray());
-                }
-            }).build();
-            java.io.File file = packageJavadoc.outputs.files.singleFile;
-            java.nio.file.Path path = file.toPath();
-            HttpRequest put = HttpRequest.newBuilder()
-                    .PUT(HttpRequest.BodyPublishers.ofFile(path))
-                    .uri(new URI(System.getenv("UPLOAD_MAVEN_URL") +  "/tmp-javadocs/" + file.getName()))
-                    .build();
-            HttpResponse<String> response = cl.send(put, HttpResponse.BodyHandlers.ofString());
-            if ((int)(response.statusCode() / 100) != 2) {
-                println(response.statusCode());
-                println(response.body());
-                throw new Error("Upload Javadoc Zip Failed!");
-            }
-        }
+    filesMatching('META-INF/mods.toml') {
+        expand version: project.version
     }
 }
 
+java {
+    // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+    // if it is present.
+    // If you remove this line, sources will not be generated.
+    withSourcesJar()
+
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 17
+}
+
+// Configure Maven publishing.
 publishing {
-    repositories {
-        if (System.getenv("UPLOAD_MAVEN_URL") != null) {
-            maven {
-                url System.getenv("UPLOAD_MAVEN_URL");
-                credentials {
-                    username System.getenv("UPLOAD_USERNAME");
-                    password System.getenv("UPLOAD_PASSWORD");
-                }
-            }
-        } else {
-            maven {
-                url System.getenv("MAVEN_DIR") ?: "$projectDir/build/maven"
-            }
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
         }
     }
-}
 
-// #####################
-//
-// Extra jar section
-//
-// #####################
-
-apply from: "extra_jar_def.gradle"
-
-// Variables (that should be changed)
-ext.mainName = "libmultipart"
-ext.mavenGroupId = "alexiil.mc.lib";
-
-ext.extra_jar_def__jarFile = zipTree(remapJar.archivePath);
-ext.extra_jar_def__optimised_compression = true;
-ext.extra_jar_def__decompress_external_included = true;
-ext.extra_jar_def__common_manifest.put(null, ['Sealed': 'true']);
-
-ext.extra_jar_def__fabric_mod_json_replacements = [
-  ["\$version", project.version],
-  ["\$libblockattributes_version", "$libblockattributes_version"],
-  ["\$libnetworkstack_version", "$libnetworkstack_version"]
-];
-
-// Custom modules
-def compatIncludes = [
-    "alexiil/mc/lib/multipart/compat/**",
-    "waila_plugins.json",
-    "assets/libmultipart/icon_compat.png"
-]
-def allIncludes = [
-    "assets/libmultipart/icon.png"
-];
-def baseExclude = new HashSet<>()
-baseExclude.addAll(compatIncludes)
-
-compatIncludes.add("assets/libmultipart/icon.png")
-
-def mavenDeps = [
-    ["com.google.code.findbugs", "jsr305", "3.0.1"]
-];
-
-def jarDeps = [ 
-    ["alexiil.mc.lib", "libblockattributes-core", "$libblockattributes_version"],
-    ["alexiil.mc.lib", "libnetworkstack-base", "$libnetworkstack_version"]
-];
-
-generateJar("base", ["**"], baseExclude, true, [], [], mavenDeps);
-generateJar("compat", compatIncludes, [], false, ["base"], [], [])
-generateJar("all", allIncludes, [], false, [], ["base", "compat"], mavenDeps, jarDeps);
-// Don't generate a devonly fatjar - as there's only 1 module.
-
-tasks.withType(AbstractArchiveTask) {
-    preserveFileTimestamps = false
-    reproducibleFileOrder = true
+    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+    repositories {
+        // Add repositories to publish to here.
+        // Notice: This block does NOT have the same function as the block in the top level.
+        // The repositories here will be used for publishing your artifact, not for
+        // retrieving dependencies.
+    }
 }

@@ -65,7 +65,7 @@ public class ClientPlayerInteractionManagerMixin implements IClientPlayerInterac
         at = @At(value = "INVOKE",
             target = "Lnet/minecraft/block/BlockState;onBlockBreakStart(Lnet/minecraft/world/World;"
                 + "Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/player/PlayerEntity;)V"),
-        method = "method_41930")
+        method = "lambda$startDestroyBlock$1")
     void onBlockBreakStart(BlockState state, World world, BlockPos pos, PlayerEntity player) {
         if (LibMultiPart.DEBUG) {
             LibMultiPart.LOGGER.info("[player-interaction] onBlockBreakStart( " + pos + " " + state + " )");
@@ -83,7 +83,7 @@ public class ClientPlayerInteractionManagerMixin implements IClientPlayerInterac
         at = @At(
             value = "INVOKE", target = "Lnet/minecraft/block/BlockState;calcBlockBreakingDelta(Lnet/minecraft/entity/player/PlayerEntity;"
                 + "Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;)F"
-        ), method = "method_41930"
+        ), method = "lambda$startDestroyBlock$1"
     )
     float calcBlockBreakingDeltaAttack(BlockState state, PlayerEntity pl, BlockView view, BlockPos pos) {
         if (LibMultiPart.DEBUG) {
@@ -159,8 +159,7 @@ public class ClientPlayerInteractionManagerMixin implements IClientPlayerInterac
 
     @Inject(method = "breakBlock(Lnet/minecraft/util/math/BlockPos;)Z",
         at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/block/Block;onBreak(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;"
-                + "Lnet/minecraft/block/BlockState;Lnet/minecraft/entity/player/PlayerEntity;)V"),
+            target = "Lnet/minecraft/item/ItemStack;onBlockStartBreak(Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/entity/player/PlayerEntity;)Z"),
         cancellable = true)
     void breakBlock(BlockPos pos, CallbackInfoReturnable<Boolean> ci) {
         World world = client.world;

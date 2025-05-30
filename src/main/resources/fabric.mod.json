@@ -21,8 +21,7 @@
     "libnetworkstack": "*"
   },
   "mixins": [
-    "libmultipart.client.json",
-    "libmultipart.common.json"
+    "libmultipart.mixins.json"
   ],
   "icon": "assets/libmultipart/icon.png",
   "authors": [ "AlexIIL" ],

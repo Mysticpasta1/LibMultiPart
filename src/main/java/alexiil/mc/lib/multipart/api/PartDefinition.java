@@ -9,6 +9,7 @@ package alexiil.mc.lib.multipart.api;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import com.google.common.base.Preconditions;
 import net.minecraft.nbt.NbtCompound;
@@ -26,9 +27,15 @@ public class PartDefinition {
     public static final NetObjectCache<PartDefinition> ID_NET_CACHE;
 
     static {
-        ID_NET_CACHE = NetObjectCache.createMappedIdentifier(
-            McNetworkStack.ROOT.child("libmultipart:part_definition_cache"), def -> def.identifier, PARTS
-        );
+        ID_NET_CACHE = NetObjectCache.createMappedIdentifier(McNetworkStack.ROOT.child("libmultipart:part_definition_cache"),
+                new Function<PartDefinition, Identifier>(
+                ) {
+                    @Override
+                    public Identifier apply(PartDefinition definition) {
+                        return definition.identifier;
+                    }
+                },
+                PARTS);
     }
 
     public final Identifier identifier;

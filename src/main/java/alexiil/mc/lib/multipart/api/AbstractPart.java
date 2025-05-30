@@ -28,13 +28,13 @@ import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.passive.IronGolemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.loot.context.LootContext;
 import net.minecraft.loot.context.LootContextParameterSet;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.Text;
@@ -77,6 +77,7 @@ import alexiil.mc.lib.multipart.impl.LmpInternalOnly;
 import alexiil.mc.lib.multipart.impl.PartContainer;
 import alexiil.mc.lib.multipart.impl.SingleReplacementBlockView;
 import alexiil.mc.lib.multipart.impl.client.SingleSpriteProvider;
+import net.minecraftforge.common.extensions.IForgeFriendlyByteBuf;
 
 /** The base class for every part in a multipart block.
  * <p>
@@ -494,6 +495,7 @@ public abstract class AbstractPart {
      * @param pos The position of the particles to spawn.
      * @param count The number of particles to spawn. */
     protected final void sendSpawnFallParticles(Vec3d pos, int count) {
+
         sendNetworkUpdate(this, NET_SPAWN_FALL_PARTICLES, (obj, buffer, ctx) -> {
             ctx.assertServerSide();
             buffer.writeDouble(pos.x);
@@ -617,16 +619,16 @@ public abstract class AbstractPart {
         return getDynamicShape(partialTicks);
     }
 
-    /** @return True if this pluggable should be an {@link AttributeList#obstruct(VoxelShape) obstacle} for attributes
+    /** @return True if this pluggable should be an {@link AttributeList#(VoxelShape) obstacle} for attributes
      *         with it's {@link #getShape()} when searching in this particular direction. */
     public boolean isBlocking(Direction searchDirection) {
         return true;
     }
 
     /** Offers every contained attribute to the given attribute list. NOTE: This must always use
-     * {@link AttributeList#offer(Object, VoxelShape)} with {@link #getShape()} as the {@link VoxelShape} argument!
+     * {@link AttributeList#(Object, VoxelShape)} with {@link #getShape()} as the {@link VoxelShape} argument!
      * <p>
-     * The default implementation will {@link AttributeList#obstruct(VoxelShape)} the {@link #getShape()} if
+     * The default implementation will {@link AttributeList#(VoxelShape)} the {@link #getShape()} if
      * {@link #isBlocking(Direction)} returns true, and the search direction is not null. */
     public void addAllAttributes(AttributeList<?> list) {
         Direction searchDirection = list.getSearchDirection();

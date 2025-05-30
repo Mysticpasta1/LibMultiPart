@@ -2,13 +2,17 @@
   "required": true,
   "package": "alexiil.mc.lib.multipart.mixin.impl",
   "compatibilityLevel": "JAVA_8",
+  "client": [
+    "BlockRenderManagerMixin",
+    "Client_BlockMixin",
+    "Client_EntityMixin",
+    "ClientPlayerInteractionManagerMixin",
+    "ParticleManagerMixin"
+  ],
   "mixins": [
     "LivingEntityMixin",
     "LootContextTypesAccessor",
     "ServerPlayerInteractionManagerMixin"
-  ],
-  "mixins_that_are_intentionally_disabled": [
-    "BlockEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1
